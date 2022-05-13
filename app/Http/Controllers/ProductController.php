@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -86,7 +87,7 @@ class ProductController extends Controller
     public function uploadImage(Request $request, Product $product) {
         $input = $request->validate(['image' => 'required|image']);
 
-        $key = $input['image']->store('products');
+        $key = Storage::disk('public')->putFile('products', $input['image']);
 
         $product->image_key = $key;
         $product->save();
