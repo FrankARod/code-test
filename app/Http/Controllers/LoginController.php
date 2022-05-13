@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    public function login(Request $request) {
+    public function token(Request $request) {
         $input = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -25,15 +25,22 @@ class LoginController extends Controller
         $token = $user->createToken($input['name']);
         
         return response()->json(['token' => $token->plainTextToken]);
+    }
+
+    public function login(Request $request) {
+        $input = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
  
-        // if (Auth::attempt($credentials)) {
-        //     $request->session()->regenerate();
- 
-        //     return redirect()->intended('dashboard');
-        // }
- 
-        // return back()->withErrors([
-        //     'email' => 'The provided credentials do not match our records.',
-        // ])->onlyInput('email');
+        if (!Auth::attempt($input)) {
+            return response()->json(['errors' => [
+                'email' => 'The provided credentials do not match our records.'
+            ]]);
+        }
+        
+        $request->session()->regenerate();
+
+        return response()->json();
     }
 }
