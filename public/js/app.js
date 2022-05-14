@@ -22719,7 +22719,6 @@ var bootstrap = __webpack_require__(/*! bootstrap */ "./node_modules/bootstrap/d
 
       this.loggingIn = true;
       axios.post("/api/login", this.loginCreds).then(function (res) {
-        _this2.token = res.data.token;
         _this2.loginComplete = true;
 
         _this2.loadProducts();

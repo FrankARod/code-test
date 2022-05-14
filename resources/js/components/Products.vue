@@ -209,7 +209,6 @@ export default {
         login() {
             this.loggingIn = true
             axios.post("/api/login", this.loginCreds).then(res => {
-                this.token = res.data.token;
                 this.loginComplete = true;
                 this.loadProducts();
                 this.$nextTick(() => {
