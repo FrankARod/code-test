@@ -10,12 +10,9 @@
       
       
       <div id="app" class="container">
-        <h1>Junk for Sale</h1>
-        
         <products :logged-in="{{ json_encode(Illuminate\Support\Facades\Auth::check()) }}"></products>
     </div> 
 
     <script src="{{ mix('/js/app.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
   </body>
 </html>

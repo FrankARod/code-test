@@ -1,5 +1,6 @@
 <template>
     <div>
+        <h1 class="mt-3 px-3">Junk for Sale</h1>
         <div v-if="ready">
             <div v-if="!loginComplete">
                 <div class="card">
@@ -33,17 +34,21 @@
             </div>
 
             <div v-else>
-                <button class="btn btn-danger" @click="logout" type="button">Logout</button>
+                <div class="text-end px-3">
+                    <button class="btn btn-primary me-1" @click="openCreateModal">Add Product</button>
+                    <button class="btn btn-secondary" @click="logout" type="button">Logout</button>
+                </div>
 
                 <div v-for="product in products.records" :key="product.id" class="card m-3">
                     <div class="card-header">{{ product.name }}</div>
                     <div class="card-body">
                         <img v-if="product.image_key" :src="product.image_url">
                         <p>{{ product.description }}</p>
+                        <button class="btn btn-sm btn-danger" @click="openDeleteModal(product)">Delete Product</button>
                     </div>
                 </div>
 
-                <nav aria-label="Product pagination">
+                <nav aria-label="Product pagination" class="px-3">
                     <ul class="pagination">
                         <li class="page-item" :class="{ disabled: products.page == 1 }">
                             <a class="page-link" href="#" aria-label="Previous" @click="
@@ -70,13 +75,107 @@ loadProducts();
                         </li>
                     </ul>
                 </nav>
+
+
+
+                <div ref="deleteProdModal" class="modal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Delete Product</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete {{ prodToDelete.name }}?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button :disabled="deleting" type="submit" class="btn btn-danger"
+                                    @click="deleteProduct">
+                                    <span v-show="deleting" class="spinner-border spinner-border-sm text-white"
+                                        role="status" aria-hidden="true"></span>
+                                    <span v-show="deleting" class="visually-hidden">Loading...</span>
+
+                                    <span v-show="!deleting">Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div ref="editProdModal" class="modal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form ref="editUserForm" @submit.prevent="saveProduct">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Product</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Name</label>
+                                        <div class="input-group">
+                                            <input id="name" v-model="editProdInput.name" :class="{
+                                                'is-invalid':
+                                                    editProdErrors.name && editProdErrors.name.length > 0,
+                                            }" class="form-control" type="text" name="name" />
+                                            <div v-if="editProdErrors.name && editProdErrors.name.length > 0"
+                                                class="invalid-feedback">
+                                                {{ editProdErrors.name[0] }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <div class="input-group">
+                                            <textarea id="description" v-model="editProdInput.description" :class="{
+                                                'is-invalid':
+                                                    editProdErrors.description && editProdErrors.description.length > 0,
+                                            }" class="form-control" type="text" name="description"></textarea>
+                                            <div v-if="editProdErrors.description && editProdErrors.description.length > 0"
+                                                class="invalid-feedback">
+                                                {{ editProdErrors.description[0] }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Price</label>
+                                        <div class="input-group">
+                                            <input id="price" v-model="editProdInput.price" :class="{
+                                                'is-invalid':
+                                                    editProdErrors.price && editProdErrors.price.length > 0,
+                                            }" class="form-control" type="number" step="0.01" name="price" />
+                                            <div v-if="editProdErrors.price && editProdErrors.price.length > 0"
+                                                class="invalid-feedback">{{ editProdErrors.price[0] }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button :disabled="saving" type="submit" class="btn btn-primary">
+                                        <span v-show="saving" class="spinner-border spinner-border-sm text-white"
+                                            role="status" aria-hidden="true"></span>
+                                        <span v-show="saving" class="visually-hidden">Loading...</span>
+                                        <span v-show="!saving">Save Changes</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
-
 </template>
 
-<script>
+    <script>
+let bootstrap = require("bootstrap");
+
 export default {
     props: {
         loggedIn: {
@@ -87,19 +186,22 @@ export default {
     data() {
         return {
             loginComplete: this.loggedIn,
-            loginErrors: {
-
-            },
+            loginErrors: {},
             products: {
                 page: 1,
                 records: [],
                 lastPage: 1
             },
-            loginCreds: {
-                email: '',
-                password: '',
-            },
-            ready: false
+            loginCreds: {},
+            ready: false,
+            prodToDelete: {},
+            prodToUpdateID: null,
+            editProdInput: {},
+            editProdErrors: {},
+            editProdModal: null,
+            deleteProdModal: null,
+            deleting: false,
+            saving: false
         }
     },
     mounted() {
@@ -112,20 +214,22 @@ export default {
 
                 if (this.loginComplete) {
                     this.loadProducts();
+                    this.$nextTick(() => {
+                        this.editProdModal = new bootstrap.Modal(this.$refs.editProdModal);
+                        this.deleteProdModal = new bootstrap.Modal(this.$refs.deleteProdModal);
+                    });
                 }
             });
-        },
-        loadProducts() {
-            axios.get('/api/products', { page: this.products.page }).then(resp => {
-                this.products.records = resp.data.products.data;
-                this.products.lastPage = resp.data.products.last_page;
-            })
         },
         login() {
             axios.post("/api/login", this.loginCreds).then(res => {
                 this.token = res.data.token;
                 this.loginComplete = true;
                 this.loadProducts();
+                this.$nextTick(() => {
+                    this.editProdModal = new bootstrap.Modal(this.$refs.editProdModal);
+                    this.deleteProdModal = new bootstrap.Modal(this.$refs.deleteProdModal);
+                });
             }).catch(err => {
                 this.loginCreds.password = "";
 
@@ -140,6 +244,48 @@ export default {
                 this.ready = false;
                 this.initialize();
             })
+        },
+        loadProducts() {
+            axios.get('/api/products', { page: this.products.page }).then(resp => {
+                this.products.records = resp.data.products.data;
+                this.products.lastPage = resp.data.products.last_page;
+            })
+        },
+        openCreateModal() {
+            this.editProdInput = {};
+            this.editProdModal.show();
+        },
+        saveProduct() {
+            this.saving = true
+            axios.post('/api/products', this.editProdInput)
+                .then(() => {
+                    this.loadProducts();
+                    this.editProdModal.hide();
+                    this.editProdInput = {};
+                    this.editProdErrors = {};
+                })
+                .catch((err) => {
+                    if (err.response.status) {
+                        this.editProdErrors = err.response.data.errors;
+                    }
+                })
+                .finally(() => {
+                    this.saving = false;
+                });
+        },
+        openDeleteModal(product) {
+            this.prodToDelete = Object.assign({}, product);
+            this.deleteProdModal.show();
+        },
+        deleteProduct() {
+            this.deleting = true;
+
+            axios.delete(`/api/products/${this.prodToDelete.id}`).then(() => {
+                this.loadProducts();
+                this.deleteProdModal.hide();
+            }).finally(() => {
+                this.deleting = false;
+            });
         }
     }
 }
