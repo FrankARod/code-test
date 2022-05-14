@@ -6,7 +6,7 @@
                 <div class="card">
                     <div class="card-header">Login</div>
                     <div class="card-body">
-                        <form action="" method="POST" @submit.prevent="login">
+                        <form method="POST" @submit.prevent="login">
                             <div class="mb-3">
                                 <label for="">Email</label>
                                 <input v-model="loginCreds.email" :class="{
@@ -27,7 +27,9 @@
                                 </div>
                             </div>
 
-                            <input type="submit" value="Login" class="btn btn-primary">
+                            <spinner-button :loading="loggingIn" class="btn-primary">
+                                Login
+                            </spinner-button>
                         </form>
                     </div>
                 </div>
@@ -36,47 +38,43 @@
             <div v-else>
                 <div class="text-end px-3">
                     <button class="btn btn-primary me-1" @click="openCreateModal">Add Product</button>
-                    <button class="btn btn-secondary" @click="logout" type="button">Logout</button>
+                    <spinner-button :loading="loggingOut" class="btn-secondary" @click.native="logout">
+                        Logout
+                    </spinner-button>
                 </div>
 
                 <div v-for="product in products.records" :key="product.id" class="card m-3">
                     <div class="card-header">{{ product.name }}</div>
                     <div class="card-body">
                         <img v-if="product.image_key" :src="product.image_url">
+
                         <p>{{ product.description }}</p>
-                        <button class="btn btn-sm btn-danger" @click="openDeleteModal(product)">Delete Product</button>
+
+                        <p>${{ product.price }}</p>
+
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-danger" @click="openDeleteModal(product)">Delete
+                                Product</button>
+                        </div>
                     </div>
                 </div>
 
                 <nav aria-label="Product pagination" class="px-3">
                     <ul class="pagination">
                         <li class="page-item" :class="{ disabled: products.page == 1 }">
-                            <a class="page-link" href="#" aria-label="Previous" @click="
-    products.page--;
-loadProducts();
-                            ">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
+                            <a class="page-link" href="#" aria-label="Previous"
+                                @click="products.page--; loadProducts();"><span aria-hidden="true">&laquo;</span></a>
                         </li>
                         <li v-for="n in products.lastPage" class="page-item" :class="{ active: n == products.page }"
-                            :key="n" @click="
-    products.page = n;
-loadProducts();
-                            ">
+                            :key="n" @click="products.page = n; loadProducts();">
                             <a class="page-link" href="#">{{ n }}</a>
                         </li>
                         <li class="page-item" :class="{ disabled: products.page == products.lastPage }">
-                            <a class="page-link" href="#" aria-label="Next" @click="
-    products.page++;
-loadProducts();
-                            ">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
+                            <a class="page-link" href="#" aria-label="Next"
+                                @click="products.page++; loadProducts();"><span aria-hidden="true">&raquo;</span></a>
                         </li>
                     </ul>
                 </nav>
-
-
 
                 <div ref="deleteProdModal" class="modal" tabindex="-1">
                     <div class="modal-dialog">
@@ -91,14 +89,9 @@ loadProducts();
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button :disabled="deleting" type="submit" class="btn btn-danger"
-                                    @click="deleteProduct">
-                                    <span v-show="deleting" class="spinner-border spinner-border-sm text-white"
-                                        role="status" aria-hidden="true"></span>
-                                    <span v-show="deleting" class="visually-hidden">Loading...</span>
-
-                                    <span v-show="!deleting">Delete</span>
-                                </button>
+                                <spinner-button :loading="deleting" class="btn-danger" @click.native="deleteProduct">
+                                    Delete
+                                </spinner-button>
                             </div>
                         </div>
                     </div>
@@ -156,12 +149,10 @@ loadProducts();
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Close</button>
-                                    <button :disabled="saving" type="submit" class="btn btn-primary">
-                                        <span v-show="saving" class="spinner-border spinner-border-sm text-white"
-                                            role="status" aria-hidden="true"></span>
-                                        <span v-show="saving" class="visually-hidden">Loading...</span>
-                                        <span v-show="!saving">Save Changes</span>
-                                    </button>
+
+                                    <spinner-button :loading="saving" class="btn-primary" type="submit">
+                                        Save Product
+                                    </spinner-button>
                                 </div>
                             </form>
                         </div>
@@ -201,7 +192,9 @@ export default {
             editProdModal: null,
             deleteProdModal: null,
             deleting: false,
-            saving: false
+            saving: false,
+            loggingIn: false,
+            loggingOut: false
         }
     },
     mounted() {
@@ -222,6 +215,7 @@ export default {
             });
         },
         login() {
+            this.loggingIn = true
             axios.post("/api/login", this.loginCreds).then(res => {
                 this.token = res.data.token;
                 this.loginComplete = true;
@@ -236,14 +230,21 @@ export default {
                 if (err.response.status == 422) {
                     this.loginErrors = err.response.data.errors;
                 }
+            }).finally(() => {
+                this.loggingIn = false
             });
         },
         logout() {
-            axios.post('api/logout').then(() => {
-                this.loginComplete = false;
-                this.ready = false;
-                this.initialize();
-            })
+            this.loggingOut = true;
+            axios.post('api/logout')
+                .then(() => {
+                    this.loginComplete = false;
+                    this.ready = false;
+                    this.initialize();
+                })
+                .finally(() => {
+                    this.loggingOut = false
+                })
         },
         loadProducts() {
             axios.get('/api/products', { page: this.products.page }).then(resp => {
@@ -265,7 +266,7 @@ export default {
                     this.editProdErrors = {};
                 })
                 .catch((err) => {
-                    if (err.response.status) {
+                    if (err.response.status == 422) {
                         this.editProdErrors = err.response.data.errors;
                     }
                 })

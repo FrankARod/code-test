@@ -29,7 +29,7 @@ class ProductController extends Controller
         $input = $request->validate([
             'name' => 'required|max:255',
             'description' => 'required|max:255',
-            'price' => 'required|digits_between:1,8',
+            'price' => 'required|digits_between:1,6',
         ]);
 
         $product = new Product();
@@ -65,7 +65,7 @@ class ProductController extends Controller
         $input = $request->validate([
             'name' => 'required|max:255',
             'description' => 'required|max:255',
-            'price' => 'required|digits_between:1,8',
+            'price' => 'required|digits_between:1,6',
         ]);
 
         $product->name = $input['name'];
