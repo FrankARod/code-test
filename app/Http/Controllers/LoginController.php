@@ -19,7 +19,7 @@ class LoginController extends Controller
         $user = User::where('email', $input['email'])->first();
 
         if (empty($user) || !Hash::check($input['password'], $user->password)) {
-            return response('Invalid credentials.', 401);
+            return response()->json(['message' => 'The provided credentials do not match our records.'], 422);
         };
 
         $token = $user->createToken($input['name']);
@@ -35,12 +35,18 @@ class LoginController extends Controller
  
         if (!Auth::attempt($input)) {
             return response()->json(['errors' => [
-                'email' => 'The provided credentials do not match our records.'
-            ]]);
+                'email' => ['The provided credentials do not match our records.']
+            ]], 422);
         }
         
         $request->session()->regenerate();
 
-        return response()->json();
+        return response()->json(['message' => 'Login successful.']);
+    }
+
+    public function logout(Request $request){
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
     }
 }

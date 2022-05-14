@@ -12,7 +12,7 @@
       <div id="app" class="container">
         <h1>Junk for Sale</h1>
         
-        <products></products>
+        <products :logged-in="{{ json_encode(Illuminate\Support\Facades\Auth::check()) }}"></products>
     </div> 
 
     <script src="{{ mix('/js/app.js') }}"></script>

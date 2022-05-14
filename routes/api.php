@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('token', [LoginController::class, 'token']);
 Route::post('login', [LoginController::class, 'login']);
+Route::post('logout', [LoginController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('products', ProductController::class);

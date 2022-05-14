@@ -1,18 +1,29 @@
 <template>
     <div>
         <div v-if="ready">
-            <div v-if="!loggedIn">
+            <div v-if="!loginComplete">
                 <div class="card">
                     <div class="card-header">Login</div>
                     <div class="card-body">
                         <form action="" method="POST" @submit.prevent="login">
                             <div class="mb-3">
                                 <label for="">Email</label>
-                                <input v-model="loginCreds.email" type="text" class="form-control">
+                                <input v-model="loginCreds.email" :class="{
+                                    'is-invalid': loginErrors.email && loginErrors.email.length > 0,
+                                }" type="text" class="form-control">
+                                <div v-if="loginErrors.email && loginErrors.email.length > 0" class="invalid-feedback">
+                                    {{ loginErrors.email[0] }}
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="">Password</label>
-                                <input v-model="loginCreds.password" type="text" class="form-control">
+                                <input v-model="loginCreds.password" :class="{
+                                    'is-invalid': loginErrors.password && loginErrors.password.length > 0,
+                                }" type="text" class="form-control">
+                                <div v-if="loginErrors.password && loginErrors.password.length > 0"
+                                    class="invalid-feedback">
+                                    {{ loginErrors.password[0] }}
+                                </div>
                             </div>
 
                             <input type="submit" value="Login" class="btn btn-primary">
@@ -22,6 +33,7 @@
             </div>
 
             <div v-else>
+                <button class="btn btn-danger" @click="logout" type="button">Logout</button>
 
                 <div v-for="product in products.records" :key="product.id" class="card m-3">
                     <div class="card-header">{{ product.name }}</div>
@@ -66,10 +78,18 @@ loadProducts();
 
 <script>
 export default {
+    props: {
+        loggedIn: {
+            type: Boolean,
+            default: false
+        }
+    },
     data() {
         return {
-            loggedIn: false,
-            token: "",
+            loginComplete: this.loggedIn,
+            loginErrors: {
+
+            },
             products: {
                 page: 1,
                 records: [],
@@ -83,30 +103,43 @@ export default {
         }
     },
     mounted() {
-        // this.loadProducts();
-        axios.get('/sanctum/csrf-cookie').then(response => {
-            this.ready = true;
-        });
+        this.initialize();
     },
     methods: {
-        loadProducts() {
-            axios.get('/api/products', { page: this.products.page }, {
-                headers: {
-                    Authorization: `Bearer ${this.token}`
+        initialize() {
+            axios.get('/sanctum/csrf-cookie').then(response => {
+                this.ready = true;
+
+                if (this.loginComplete) {
+                    this.loadProducts();
                 }
-            }).then(resp => {
+            });
+        },
+        loadProducts() {
+            axios.get('/api/products', { page: this.products.page }).then(resp => {
                 this.products.records = resp.data.products.data;
                 this.products.lastPage = resp.data.products.last_page;
-            }).catch(err => {
-                this.$router.push('/login');
             })
         },
         login() {
             axios.post("/api/login", this.loginCreds).then(res => {
                 this.token = res.data.token;
-                this.loggedIn = true;
+                this.loginComplete = true;
                 this.loadProducts();
-            }).catch();
+            }).catch(err => {
+                this.loginCreds.password = "";
+
+                if (err.response.status == 422) {
+                    this.loginErrors = err.response.data.errors;
+                }
+            });
+        },
+        logout() {
+            axios.post('api/logout').then(() => {
+                this.loginComplete = false;
+                this.ready = false;
+                this.initialize();
+            })
         }
     }
 }
