@@ -90,7 +90,7 @@ class ProductController extends Controller
     }
 
     public function uploadImage(Request $request, Product $product) {
-        $input = $request->validate(['image' => 'required|image']);
+        $input = $request->validate(['image' => 'required|image|max:1500']);
 
         $key = Storage::disk('public')->putFile('products', $input['image']);
 
