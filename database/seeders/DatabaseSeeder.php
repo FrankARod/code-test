@@ -15,16 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
+        User::factory()->subscribed()->create(['email' => 'active@codetest.test']);
         User::factory()->expired()->create(['email' => 'expired@codetest.test']);
         User::factory()->create(['email' => 'nosub@codetest.test']);
         User::factory()->subscribed()->count(3)->create();
-
     }
 }
