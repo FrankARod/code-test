@@ -78,8 +78,4 @@ class ProductControllerTest extends TestCase
         $response->assertOk();
         $this->assertNull(Product::find($product->id), 'Product should be deletable by authenticated users.');
     }
-
-    // public function testUploadImage() {
-
-    // }
 }

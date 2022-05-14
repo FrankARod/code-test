@@ -73,6 +73,8 @@ class ProductController extends Controller
         $product->price = $input['price'];
         
         $product->save();
+
+        return response()->json(['message' => 'Product updated']);
     }
 
     /**
@@ -84,6 +86,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+        return response()->json(['message' => 'Product deleted.']);
     }
 
     public function uploadImage(Request $request, Product $product) {
@@ -93,5 +96,7 @@ class ProductController extends Controller
 
         $product->image_key = $key;
         $product->save();
+
+        return response()->json(['message' => 'Image uploaded.']);
     }
 }
