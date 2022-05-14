@@ -38,6 +38,8 @@ class ProductController extends Controller
         $product->price = $input['price'];
         
         $product->save();
+
+        return response()->json(['product_id' => $product->id]);
     }
 
     /**
@@ -67,7 +69,7 @@ class ProductController extends Controller
         ]);
 
         $product->name = $input['name'];
-        $product->desription = $input['desription'];
+        $product->description = $input['description'];
         $product->price = $input['price'];
         
         $product->save();
