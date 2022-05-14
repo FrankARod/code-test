@@ -16,7 +16,7 @@ class ProfileController extends Controller
     public function detachProduct(Request $request) {
         $input = $request->validate(['product_id' => 'required|exists:products,id']);
         $request->user()->products()->detach($input['product_id']);
-        return response()->json(['message' => 'Product detached from your user.']);
+        return response()->json(['message' => 'Product detached from your account.']);
     }
 
     public function products(Request $request) {
