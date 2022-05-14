@@ -1,30 +1,27 @@
 <template>
     <div>
-        <h1 class="mt-3 px-3">Junk for Sale</h1>
+        <h1 class="mt-3 px-3">Stuff for Sale</h1>
         <div v-if="ready">
             <div v-if="!loginComplete">
-                <div class="card">
+                <div class="card mt-3">
                     <div class="card-header">Login</div>
                     <div class="card-body">
                         <form method="POST" @submit.prevent="login">
                             <div class="mb-3">
                                 <label for="">Email</label>
-                                <input v-model="loginCreds.email" :class="{
-                                    'is-invalid': loginErrors.email && loginErrors.email.length > 0,
-                                }" type="text" class="form-control">
+                                <input v-model="loginCreds.email"
+                                    :class="{ 'is-invalid': loginErrors.email && loginErrors.email.length > 0 }"
+                                    type="text" class="form-control">
                                 <div v-if="loginErrors.email && loginErrors.email.length > 0" class="invalid-feedback">
-                                    {{ loginErrors.email[0] }}
-                                </div>
+                                    {{ loginErrors.email[0] }}</div>
                             </div>
                             <div class="mb-3">
-                                <label for="">Password</label>
-                                <input v-model="loginCreds.password" :class="{
-                                    'is-invalid': loginErrors.password && loginErrors.password.length > 0,
-                                }" type="text" class="form-control">
+                                <label>Password</label>
+                                <input v-model="loginCreds.password"
+                                    :class="{ 'is-invalid': loginErrors.password && loginErrors.password.length > 0 }"
+                                    type="text" class="form-control">
                                 <div v-if="loginErrors.password && loginErrors.password.length > 0"
-                                    class="invalid-feedback">
-                                    {{ loginErrors.password[0] }}
-                                </div>
+                                    class="invalid-feedback">{{ loginErrors.password[0] }}</div>
                             </div>
 
                             <spinner-button :loading="loggingIn" class="btn-primary">
@@ -43,10 +40,12 @@
                     </spinner-button>
                 </div>
 
+                <div v-show="products.records.length === 0" class="px-3 my-3 text-center">No Products</div>
+
                 <div v-for="product in products.records" :key="product.id" class="card m-3">
                     <div class="card-header">{{ product.name }}</div>
                     <div class="card-body">
-                        <img v-if="product.image_key" :src="product.image_url">
+                        <img v-if="product.image_key" :src="product.image_url" class="img-fluid">
 
                         <p>{{ product.description }}</p>
 
@@ -100,7 +99,7 @@
                 <div ref="editProdModal" class="modal" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                            <form ref="editUserForm" @submit.prevent="saveProduct">
+                            <form @submit.prevent="saveProduct">
                                 <div class="modal-header">
                                     <h5 class="modal-title">Edit Product</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
@@ -110,37 +109,30 @@
                                     <div class="mb-3">
                                         <label class="form-label">Name</label>
                                         <div class="input-group">
-                                            <input id="name" v-model="editProdInput.name" :class="{
-                                                'is-invalid':
-                                                    editProdErrors.name && editProdErrors.name.length > 0,
-                                            }" class="form-control" type="text" name="name" />
+                                            <input id="name" v-model="editProdInput.name"
+                                                :class="{ 'is-invalid': editProdErrors.name && editProdErrors.name.length > 0 }"
+                                                class="form-control" type="text" name="name" />
                                             <div v-if="editProdErrors.name && editProdErrors.name.length > 0"
-                                                class="invalid-feedback">
-                                                {{ editProdErrors.name[0] }}
-                                            </div>
+                                                class="invalid-feedback">{{ editProdErrors.name[0] }}</div>
                                         </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Description</label>
                                         <div class="input-group">
-                                            <textarea id="description" v-model="editProdInput.description" :class="{
-                                                'is-invalid':
-                                                    editProdErrors.description && editProdErrors.description.length > 0,
-                                            }" class="form-control" type="text" name="description"></textarea>
+                                            <textarea id="description" v-model="editProdInput.description"
+                                                :class="{ 'is-invalid': editProdErrors.description && editProdErrors.description.length > 0 }"
+                                                class="form-control" type="text" name="description"></textarea>
                                             <div v-if="editProdErrors.description && editProdErrors.description.length > 0"
-                                                class="invalid-feedback">
-                                                {{ editProdErrors.description[0] }}
-                                            </div>
+                                                class="invalid-feedback">{{ editProdErrors.description[0] }}</div>
                                         </div>
                                     </div>
 
                                     <div class="mb-3">
                                         <label class="form-label">Price</label>
                                         <div class="input-group">
-                                            <input id="price" v-model="editProdInput.price" :class="{
-                                                'is-invalid':
-                                                    editProdErrors.price && editProdErrors.price.length > 0,
-                                            }" class="form-control" type="number" step="0.01" name="price" />
+                                            <input id="price" v-model="editProdInput.price"
+                                                :class="{ 'is-invalid': editProdErrors.price && editProdErrors.price.length > 0 }"
+                                                class="form-control" type="number" step="0.01" name="price" />
                                             <div v-if="editProdErrors.price && editProdErrors.price.length > 0"
                                                 class="invalid-feedback">{{ editProdErrors.price[0] }}</div>
                                         </div>
